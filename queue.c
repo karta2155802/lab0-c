@@ -14,15 +14,33 @@
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *q = malloc(sizeof(struct list_head));
+    // check if malloc success
+    if (q)
+        INIT_LIST_HEAD(q);
+
+    return q;
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    free(l);
+}
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+    element_t *ele = malloc(sizeof(element_t));
+    ele->value = strdup(s);
+    if (!ele->value) {
+        free(ele);
+        return false;
+    }
+    list_add(&ele->list, head);
+
     return true;
 }
 
@@ -55,7 +73,7 @@ int q_size(struct list_head *head)
 
     list_for_each (li, head)
         len++;
-    return -1;
+    return -len;
 }
 
 /* Delete the middle node in queue */
