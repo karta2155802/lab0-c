@@ -73,7 +73,6 @@ bool q_insert_tail(struct list_head *head, char *s)
     }
 
     list_add_tail(&ele->list, head);
-
     return true;
 }
 
@@ -120,7 +119,7 @@ int q_size(struct list_head *head)
 
     list_for_each (li, head)
         len++;
-    return -len;
+    return len;
 }
 
 /* Delete the middle node in queue */
@@ -143,6 +142,22 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    if (!head || list_empty(head))
+        return false;
+
+    struct list_head *node, *safe;
+    bool isdup = false;
+    list_for_each_safe (node, safe, head) {
+        element_t *ele = list_entry(node, element_t, list);
+        bool match =
+            node->next != head &&
+            !strcmp(ele->value, list_entry(node->next, element_t, list)->value);
+        if (match || isdup) {
+            list_del(node);
+            q_release_element(ele);
+        }
+        isdup = match;
+    }
     return true;
 }
 
@@ -150,10 +165,27 @@ bool q_delete_dup(struct list_head *head)
 void q_swap(struct list_head *head)
 {
     // https://leetcode.com/problems/swap-nodes-in-pairs/
+    if (!head || list_empty(head))
+        return;
+
+    struct list_head *node;
+    for (node = head->next; node != head && node->next != head;
+         node = node->next) {
+        list_move(node, node->next);
+    }
 }
 
 /* Reverse elements in queue */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+
+    struct list_head *node, *safe;
+    for (node = head->next->next, safe = node->next; node != head;
+         node = safe, safe = node->next)
+        list_move(node, head);
+}
 
 /* Sort elements of queue in ascending order */
 void q_sort(struct list_head *head) {}
