@@ -10,7 +10,6 @@
  *   cppcheck-suppress nullPointer
  */
 
-
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -187,5 +186,53 @@ void q_reverse(struct list_head *head)
         list_move(node, head);
 }
 
+struct list_head *mergeTwoLists(struct list_head *l1, struct list_head *l2)
+{
+    struct list_head *head = NULL, **ptr = &head, **node;
+    for (node = NULL; l1 && l2; *node = (*node)->next) {
+        node = strcmp(list_entry(l1, element_t, list)->value,
+                      list_entry(l2, element_t, list)->value) < 0
+                   ? &l1
+                   : &l2;
+        *ptr = *node;
+        ptr = &(*ptr)->next;
+    }
+    *ptr = (struct list_head *) ((u_int64_t) l1 | (u_int64_t) l2);
+    return head;
+}
+
+struct list_head *mergeSort(struct list_head *head)
+{
+    if (!head || !head->next)
+        return head;
+
+    struct list_head *fast, *slow;
+    for (fast = slow = head; fast && fast->next;
+         slow = slow->next, fast = fast->next->next)
+        ;
+
+    slow->prev->next = NULL;
+
+    struct list_head *left = mergeSort(head);
+    struct list_head *right = mergeSort(slow);
+    return mergeTwoLists(left, right);
+}
+
 /* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    head->prev->next = NULL;
+    head->next = mergeSort(head->next);
+
+    struct list_head *cur = head, *next = head->next;
+    while (next) {
+        next->prev = cur;
+        cur = next;
+        next = next->next;
+    }
+    cur->next = head;
+    head->prev = cur;
+}
